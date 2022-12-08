@@ -1,0 +1,20 @@
+{
+    "dialog_history": [
+        {
+            "party": "agent",
+            "color": "#ADD8E6",
+            "text": "I am your reading assistant! How may I help you today?"
+        },
+        {
+            "party": "user",
+            "color": "#FFDEAD",
+            "text": "I have trouble understanding this paper. Can you help me?"
+        },
+        {
+            "party": "agent",
+            "color": "#ADD8E6",
+            "text": "Sure! That's my job. I am happy to help you."
+        }
+    ],
+    "questions": []
+}

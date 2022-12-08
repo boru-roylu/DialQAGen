@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DialogQAGen</title>
+
+    <!-- Our custom selection script -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/spinner.css') }}" type="text/css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" type="text/css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.2.1/dist/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.6/dist/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.2.1/dist/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+</head>
+
+<body>
+
+    <div id="overlay">
+      <div class="cv-spinner">
+        <span class="spinner"></span>
+        <p>Loading</p>
+      </div>
+    </div>
+
+    <div class="container">
+        <h1 align="center">DialQAGen</h1>
+        <h5 align="center">Bo-Ru (Roy) Lu, Sitong Zhou, Kevin Everson, Chia-Hsuan Lee</h5>
+
+        <p style="font-size:13px;">With our project, we provide an interactive dialogue QA model interface to assist readers of scholarly articles. One contribution of our project is to provide the reader with summaries of paragraphs/sections of their choosing. Additionally, we allow the user to ask questions for clarification of the text. Furthermore, following literature on active reading, we prompt the model to ask questions of the reader, reinforcing and developing reader understanding. The model can then answer these questions, chosen by the user.
+            Each of these goals is achieved using a single large language model called Codex. In general, such language models take previous input as context and generate text as output. By careful tuning of input prompts, we can induce desired outputs, i.e. summaries, answers, or questions.
+            Prior work in reading assistance has often focused on <a href="https://dl.acm.org/doi/abs/10.1145/3458709.3459002?casa_token=hD9PCy2CAT0AAAAA:pZlDAsTgAsj00LJvDNWsz1wPmjOFukL5OGd0higmkq4AfIeh4lzowGxitClMg-4TfbV7kAZXb5xw">text summarization</a>, using summarization-specific models. Others, such as Explainpaper, use a similar user experience to ours. However, their implementation is not transparent, so it is unclear if/how the model is using prior dialogue history as input for generating future responses.</p>
+
+        <div class="row">
+            <div class="col-8 paper">
+                <h3 align="center"> Title: {{ paper['Title'] }} </h3>
+                <h3 align="center"> Authors </h3>
+                <div class="row">
+                    <p>
+                        {% for author in paper['Authors'] %}
+                            {{ author }}<br>
+                        {% endfor %}
+                    </p>
+                </div>
+
+                <h3 align="center"> Abstract </h3>
+                <div class="row">
+                    <p>[Abstract]</p>
+                    <button type="button" id="abstract" class="section btn btn-outline-primary" style="margin-bottom: 10px">Select</button>
+                    <p id="text-abstract" class="section"> {{ paper['Abstract'] }} </p>
+                </div>
+
+                <h3 align="center"> Introduction </h3>
+                <div class="row">
+                    {% for intro in paper['Introduction'] %}
+                        <p>[Intro-{{ loop.index }}]</p>
+                        <button type="button" id="intro-{{ loop.index }}" class="section btn btn-outline-primary" style="margin-bottom: 10px">Select</button>
+                        <p id="text-intro-{{ loop.index }}" class="section">{{ intro }}</p>
+                    {% endfor %}
+                </div>
+
+                <h3 align="center"> Method </h3>
+                <div class="row">
+                    {% for method in paper['Methods'] %}
+                        <p>[Method-{{ loop.index }}]</p>
+                        <button type="button" id="method-{{ loop.index }}" class="section btn btn-outline-primary" style="margin-bottom: 10px">Select</button>
+                        <p id="text-method-{{ loop.index }}" class="section">{{ method }}</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div id="div-dialog" class="col-4 dialog">
+                <h3 align="center"> Dialog </h3>
+
+                <div id="dialog-history">
+                    {% for turn in dialog_history %}
+                        <span class="rounded" style="background-color: {{ turn['color'] }}; float: left; padding: 5px; margin-bottom: 20px;">
+                            {{ turn['party'] }}: {{ turn['text'] }}
+                        </span>
+                    {% endfor %}
+                </div>
+
+                <div id="suggested_questions">
+                    {% for question in questions %}
+                        <button type="button" id="question-{{ loop.index }}" class="question btn btn-primary" style="margin-bottom: 10px">Q{{ loop.index }}: {{ question }}</button>
+                    {% endfor %}
+                </div>
+
+                <div class="form-floating">
+                    <textarea class="form-control" placeholder="Type your question here." id="user-input" style="height: 100px"></textarea>
+                </div>
+
+                <button type="button" id="submit" onClick=Submit() class="btn btn-outline-primary" style="margin: 10px">Submit</button>
+                <button type="button" id="submit" onClick=Restart() class="btn btn-outline-primary" style="margin: 10px">Restart</button>
+
+            </div>
+
+
+        </div>
+    </div>
+
+<script>
+
+    function alertWhenDeleted() {
+        console.log(this.HTMLTextAreaElement);
+    }
+
+    let selected_section = undefined;
+    let dialog_history = JSON.parse('{{ dialog_history | tojson | safe}}')
+    let questions = JSON.parse('{{ questions | tojson | safe}}')
+    let curr_party = 'user';
+
+    var objDiv = document.getElementById("div-dialog");
+    objDiv.scrollTop = objDiv.scrollHeight;
+
+    $("button.question").click(function() {
+        let question_idx = parseInt(this.id.split('-').slice(1,2)[0]) - 1;
+        $("p.section").removeClass("mark");
+        console.log(questions[question_idx]);
+        console.log(this.innerHTML);
+        question = questions[question_idx]
+        $("#user-input")[0].innerHTML = question;
+        let curr_party = 'user';
+    });
+
+    $("button.section").click(function() {
+        let sec_id = this.id
+        console.log(sec_id);
+
+        $("p.section").removeClass("mark");
+        let text = $(`#text-${sec_id}`);
+
+        let dh_obj = $("#dialog-history")
+
+        simplified_section = text.text().split(" ").slice(0, 3).join(" ");
+        simplified_section = `[${sec_id}] ` + simplified_section + " ... "
+        selected_section = text.text();
+        text.addClass("mark");
+
+        $("#user-input")[0].readOnly = true;
+        $("#user-input")[0].innerHTML = simplified_section;
+
+        curr_party = 'paragraph';
+
+    });
+
+    function Restart() {
+        const queryString = window.location.search;
+        const url_params = new URLSearchParams(queryString);
+        let paper_id = url_params.get('paper_id');
+        location.replace(`/gen?iter_idx=0&paper_id=${paper_id}`);
+    }
+
+    function Submit() {
+        const queryString = window.location.search;
+        const url_params = new URLSearchParams(queryString);
+        let iter_idx = url_params.get('iter_idx');
+        let paper_id = url_params.get('paper_id');
+        //let user_input = $("#user-input")[0].innerHTML;
+        let user_input = $("#user-input")[0].value;
+
+        user_turn = {
+            'party': curr_party,
+            'color': '#FFDEAD;',
+            'text': user_input,
+            'raw_text': selected_section
+        }
+
+        dialog_history.push(user_turn);
+
+        let data = {
+            'dialog_history': dialog_history,
+            'iter_idx': iter_idx,
+            'paper_id': paper_id,
+        }
+
+        $("#overlay").fadeIn(300);
+
+        $.ajax({
+            method: "POST",
+            contentType: 'application/json',
+            url: "/regenerate",
+            data: JSON.stringify(data),
+            dataType: 'json',
+        }).done(function(msg) {
+            console.log(msg);
+            location.replace(msg);
+            $("#overlay").fadeOut(300);
+        }, 500).fail(function()  {
+            alert("Sorry. Server unavailable. ");
+        });
+
+        // Resets
+        selected_section = undefined;
+        curr_party = 'user';
+    }
+
+</script>
+
+</body>
+</html>

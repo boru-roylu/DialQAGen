@@ -1,0 +1,9 @@
+.paper {
+  overflow-y:auto;
+  height: 800px;
+}
+
+.dialog {
+  overflow-y:auto;
+  height: 800px;
+}
