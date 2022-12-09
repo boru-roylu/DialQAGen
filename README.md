@@ -1,6 +1,6 @@
 # DialQAGen
 
-Add a hidden file ".api_keys" with two lines of Codex API keys.
+Add a hidden file `.env` with your OpenAI Codex API key.
 
 ```bash
     python -m flask run --port 5000
