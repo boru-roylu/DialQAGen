@@ -1,6 +1,7 @@
 import sys
 sys.path.append('..')
 
+import decouple
 import json
 import os
 import re
@@ -11,11 +12,8 @@ import functions
 
 app = Flask(__name__)
 
-api_key_path = './.api_keys'
-api_keys = []
-with open(api_key_path, 'r') as f:
-    for line in f:
-        api_keys.append(line.strip())
+
+api_key = decouple.config('api_key')
 
 @app.route('/gen')
 def gen():
@@ -54,10 +52,10 @@ def regenerate():
         print(party)
 
         if party == 'paragraph':
-            response = functions.generate_summary(dialog_history, api_keys[0])
+            response = functions.generate_summary(dialog_history, api_key)
             party = 'summary'
         else:
-            response = functions.generate_response(dialog_history, api_keys[0])
+            response = functions.generate_response(dialog_history, api_key)
             party = 'agent'
 
         response = response.replace('\n', ' ')
@@ -82,7 +80,7 @@ def regenerate():
 
         dialog_history.append(agent_turn)
 
-        questions = functions.generate_questions(dialog_history, api_keys[1])
+        questions = functions.generate_questions(dialog_history, api_key)
         questions = list(map(filter_unicode, questions))
 
         data = {
